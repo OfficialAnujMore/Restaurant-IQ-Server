@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import authRouter from './routes/auth.js';
 import analyzeRouter from './routes/analyze.js';
 import savedLocationsRouter from './routes/savedLocations.js';
+import rentPressureRouter from './routes/rentPressure.js';
 import { requireAuth } from './middleware/auth.js';
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/analyze', requireAuth, analyzeRouter);
 app.use('/api/saved-locations', requireAuth, savedLocationsRouter);
+app.use('/api/rent-pressure', requireAuth, rentPressureRouter);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
