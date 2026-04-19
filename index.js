@@ -8,6 +8,7 @@ import authRouter from './routes/auth.js';
 import analyzeRouter from './routes/analyze.js';
 import savedLocationsRouter from './routes/savedLocations.js';
 import rentPressureRouter from './routes/rentPressure.js';
+import insightsRouter from './routes/insights.js';
 import { requireAuth } from './middleware/auth.js';
 
 dotenv.config();
@@ -15,6 +16,9 @@ dotenv.config();
 if (!process.env.ARCGIS_API_KEY) console.warn(' ARCGIS_API_KEY not set in .env');
 if (!process.env.MONGO_URI) console.warn(' MONGO_URI not set in .env');
 if (!process.env.JWT_SECRET) console.warn(' JWT_SECRET not set in .env');
+if (!process.env.OPENAI_API_KEY) {
+  console.warn(' OPENAI_API_KEY not set — AI insights disabled');
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +31,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/analyze', requireAuth, analyzeRouter);
 app.use('/api/saved-locations', requireAuth, savedLocationsRouter);
 app.use('/api/rent-pressure', requireAuth, rentPressureRouter);
+app.use('/api/insights', requireAuth, insightsRouter);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
