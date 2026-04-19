@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import Search from '../models/Search.js';
 import { geocodeCity } from '../services/arcgisGeocoding.js';
 import { findCompetitors, findAnchors } from '../services/arcgisPlaces.js';
-import { geoenrichBatch } from '../services/arcgisGeoEnrichment.js';
+import { geoenrichBatch } from '../services/censusEnrich.js';
 import { generateGrid, scoreCandidates } from '../services/scoringEngine.js';
 
 const router = express.Router();

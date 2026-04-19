@@ -47,7 +47,11 @@ export async function geoenrichBatch(points) {
     }
 
     if (result.data?.error) {
-      console.error('GeoEnrichment API error:', result.data.error.code, result.data.error.message);
+      const { code, message } = result.data.error;
+      console.error(`GeoEnrichment API error: ${code} ${message}`);
+      if (code === 498 || code === 499) {
+        console.error('→ Fix: enable the GeoEnrichment privilege on your ArcGIS API key at developers.arcgis.com');
+      }
       return zeros();
     }
     if (result.data?.messages?.length) {
