@@ -1,132 +1,82 @@
-# RestaurantIQ
+# RestaurantIQ — Server
 
-**ArcGIS-powered location intelligence for restaurant site selection.**
-Pick a city, pick a cuisine, pick a strategy — RestaurantIQ scores a grid of candidate locations across demographics, foot traffic, anchor proximity, and competitor density, then ranks the top 5 spots and visualizes them on an interactive map.
+Express API backend for RestaurantIQ, an ArcGIS-powered location intelligence tool for restaurant site selection.
 
----
+## Problem Statement
 
-## Prerequisites
+Finding the right location for a new restaurant is expensive and risky. RestaurantIQ's backend orchestrates a scoring pipeline: it geocodes a city, generates a candidate grid, fetches competitor and anchor data from ArcGIS Places, enriches each point with demographics via GeoEnrichment and Census APIs, scores locations using a configurable strategy, and serves the results to the frontend. A separate AI insights endpoint calls OpenAI GPT-4o-mini to produce human-readable analysis per location.
 
-- Node.js 18+
-- MongoDB (local or Atlas)
-- An ArcGIS Developer API key — [developers.arcgis.com](https://developers.arcgis.com/)
+## Tech Stack
 
----
+| Technology | Version | Purpose |
+|---|---|---|
+| **Node.js** | 18+ | Runtime |
+| **Express** | 5 | HTTP framework |
+| **MongoDB + Mongoose** | 9 | Persist saved locations, search history, insight cache |
+| **JWT + bcryptjs** | — | User authentication and password hashing |
+| **cookie-parser** | — | JWT delivery via HTTP-only cookies |
+| **OpenAI API** | gpt-4o-mini | AI-generated location insights |
+| **ArcGIS REST APIs** | — | Geocoding, Places (competitors + anchors), GeoEnrichment |
+| **U.S. Census API** | — | Supplemental demographic enrichment |
+| **dotenv** | — | Environment variable management |
+| **nodemon** | — | Dev server with hot reload |
+
+## API Routes
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | Login and receive JWT cookie |
+| `POST` | `/api/auth/logout` | Clear auth cookie |
+| `GET` | `/api/auth/me` | Get current authenticated user |
+| `POST` | `/api/analyze` | Run full location scoring pipeline |
+| `GET` | `/api/saved-locations` | List saved candidate locations |
+| `POST` | `/api/saved-locations` | Save a candidate location |
+| `DELETE` | `/api/saved-locations/:id` | Delete a saved location |
+| `POST` | `/api/insights` | Generate AI insights for a location |
+| `POST` | `/api/rent-pressure` | Compute rent pressure score for a coordinate |
+
+## Scoring Pipeline
+
+```
+geocode → places (parallel: competitors + anchors) → 4×5 grid → enrich → score → persist → respond
+```
+
+Strategy options passed in the request body:
+- **Gap Finder** — rewards locations with fewer nearby competitors
+- **Join Hotspot** — rewards locations with dense established competition (validated demand)
+- **Show Both** — returns both sub-scores
 
 ## Setup
 
 ```bash
-git clone <repo> restaurantiq && cd restaurantiq
-```
-
-### Server
-
-```bash
-cd server
 npm install
 ```
 
-Create `server/.env`:
+Create `.env`:
 
 ```
 ARCGIS_API_KEY=your_arcgis_api_key_here
 MONGO_URI=your_mongodb_connection_string_here
+OPENAI_API_KEY=your_openai_api_key_here
+JWT_SECRET=your_jwt_secret_here
 PORT=5000
 ```
 
-Start:
-
 ```bash
 npm run dev
 ```
-
-### Client
-
-```bash
-cd ../client
-npm install
-```
-
-Create `client/.env`:
-
-```
-VITE_ARCGIS_API_KEY=your_arcgis_api_key_here
-```
-
-Start:
-
-```bash
-npm run dev
-```
-
-The Vite dev server proxies `/api/*` → `http://localhost:5000`.
-
-> **macOS note:** port 5000 is used by AirPlay Receiver. Either disable it (System Settings → General → AirDrop & Handoff) or change `PORT` in `server/.env` and update the proxy target in `client/vite.config.js`.
-
----
-
-## How to use
-
-1. Enter a city (e.g. `Fullerton, CA`).
-2. Pick a restaurant type and the menu items you plan to serve.
-3. Pick a strategy:
- - **Gap Finder** — reward areas with few competitors
- - **Join Hotspot** — reward areas with dense competition (validated demand)
- - **Show Both** — report both sub-scores
-4. Hit **Find Best Locations**. The map flies to the city and drops five numbered pins ranked green (best) → red.
-5. Click a pin or a sidebar card to focus it. Save any candidate with and revisit it in the ** Saved** tab.
-
----
-
-## ArcGIS APIs used
-
-| API | Why |
-| --- | --- |
-| **World Geocoding** | Resolve a city name → center + bounding box that we grid across |
-| **Places (near-point)** | Find competitors (e.g. "burger") and anchors (universities, malls) within 10 km |
-| **GeoEnrichment** | Pull population + median household income around each candidate in a 1-mile ring |
-| **Basemap: dark-gray-vector** | Clean dark canvas for a data-dense overlay |
-
----
-
-## Architecture
-
-```
- ┌──────────────────┐ REST / JSON ┌──────────────────┐
- │ React + Vite │ ─────────────────────▶│ Express API │
- │ @arcgis/core │ │ /api/analyze │
- │ Tailwind v4 │ ◀─────────────────────│ /api/saved-… │
- └──────────────────┘ └─────────┬────────┘
- │
- ┌────────────────────────────────┼──────────────────────────┐
- ▼ ▼ ▼
- ┌────────────────────┐ ┌──────────────────────┐ ┌──────────────────┐
- │ ArcGIS services │ │ Scoring engine │ │ MongoDB │
- │ · Geocoding │ │ · grid generator │ │ · Search │
- │ · Places │ │ · haversine │ │ · SavedLocation │
- │ · GeoEnrichment │ │ · normalize + score │ │ │
- └────────────────────┘ └──────────────────────┘ └──────────────────┘
-```
-
-Pipeline: `geocode → places (parallel: competitors + anchors) → 4×5 grid → enrich → score → persist → respond`.
-
----
-
-## Demo script (for judges)
-
-- **"Find a gap."** Search `Fullerton, CA`, Fast Food, Gap Finder — rank 1 drops in an under-served block near CSUF.
-- **"Join the hotspot."** Flip to Join Hotspot — the pins shuffle toward established food corridors, showing the strategy actually changes the output.
-- **"Save it, come back."** Save the top result, switch to the Saved tab, and delete it — round-trips through MongoDB in one click.
-
----
 
 ## Scripts
 
-**server**
-- `npm run dev` — nodemon
-- `npm start` — node
+| Command | Description |
+|---|---|
+| `npm run dev` | Start with nodemon (hot reload) |
+| `npm start` | Start with node |
 
-**client**
-- `npm run dev` — Vite dev server
-- `npm run build` — production build
-- `npm run preview` — preview build
+## Models
+
+- **User** — name, email, hashed password
+- **SavedLocation** — scored candidate with lat/lng, scores, and metadata
+- **Search** — search history per user
+- **InsightCache** — cached AI insights keyed by location + context to avoid redundant LLM calls
