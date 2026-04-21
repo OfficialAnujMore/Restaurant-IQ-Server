@@ -7,9 +7,9 @@ Express API backend for RestaurantIQ, an ArcGIS-powered location intelligence to
 
 [![RestaurantIQ Demo](https://img.youtube.com/vi/VoYTlok4mdE/maxresdefault.jpg)](https://youtu.be/VoYTlok4mdE?si=1gPWw3Siexrv3Wkb)
 
-![RestaurantIQ Landing Screen](src/assets/Landing.png)
+![RestaurantIQ Landing Screen](assets/Landing.png)
 
-![RestaurantIQ Dashboard Screen](src/assets/Dashboard.png)
+![RestaurantIQ Dashboard Screen](assets/Dashboard.png)
 
 ## Problem Statement
 
