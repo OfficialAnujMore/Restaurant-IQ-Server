@@ -2,6 +2,15 @@
 
 Express API backend for RestaurantIQ, an ArcGIS-powered location intelligence tool for restaurant site selection.
 
+**Repos:** [Client](https://github.com/OfficialAnujMore/Restaurant-IQ-Client)
+## Demo
+
+[![RestaurantIQ Demo](https://img.youtube.com/vi/VoYTlok4mdE/maxresdefault.jpg)](https://youtu.be/VoYTlok4mdE?si=1gPWw3Siexrv3Wkb)
+
+![RestaurantIQ Landing Screen](src/assets/Landing.png)
+
+![RestaurantIQ Dashboard Screen](src/assets/Dashboard.png)
+
 ## Problem Statement
 
 Finding the right location for a new restaurant is expensive and risky. RestaurantIQ's backend orchestrates a scoring pipeline: it geocodes a city, generates a candidate grid, fetches competitor and anchor data from ArcGIS Places, enriches each point with demographics via GeoEnrichment and Census APIs, scores locations using a configurable strategy, and serves the results to the frontend. A separate AI insights endpoint calls OpenAI GPT-4o-mini to produce human-readable analysis per location.
